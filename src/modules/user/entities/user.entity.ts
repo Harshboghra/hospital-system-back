@@ -1,3 +1,4 @@
+import { Appointment } from 'src/modules/appointment/entities/appointment.entity';
 import { UserType } from 'src/modules/user-type/entities/user-type.entity';
 import {
   Entity,
@@ -5,6 +6,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('user')
@@ -31,7 +33,13 @@ export class User {
   })
   createdAt: Date;
 
-  @ManyToOne(() => UserType, (e) => e.user)
+  @ManyToOne(() => UserType, (userType) => userType.user)
   @JoinColumn([{ name: 'userTypeId', referencedColumnName: 'id' }])
   userType: UserType;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+  doctorAppointments: Appointment[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.patient)
+  patientAppointments: Appointment[];
 }

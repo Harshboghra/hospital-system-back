@@ -1,4 +1,5 @@
 import { Appointment } from 'src/modules/appointment/entities/appointment.entity';
+import { Category } from 'src/modules/category/entities/category.entity';
 import { UserType } from 'src/modules/user-type/entities/user-type.entity';
 import {
   Entity,
@@ -42,4 +43,8 @@ export class User {
 
   @OneToMany(() => Appointment, (appointment) => appointment.patient)
   patientAppointments: Appointment[];
+
+  @ManyToOne(() => Category, (category) => category.users)
+  @JoinColumn([{ name: 'categoryId', referencedColumnName: 'id' }])
+  category: Category;
 }

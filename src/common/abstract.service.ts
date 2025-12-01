@@ -65,4 +65,13 @@ export abstract class AbstractService {
       return false;
     }
   }
+
+  async abstractRemove(data: any): Promise<any> {
+    const res = await this.repository.delete(data);
+    if (res && res.affected > 0) {
+      return { status: true };
+    } else {
+      return false;
+    }
+  }
 }

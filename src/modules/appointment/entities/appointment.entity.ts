@@ -1,3 +1,4 @@
+import { Category } from 'src/modules/category/entities/category.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import {
   Column,
@@ -27,6 +28,9 @@ export class Appointment {
   @Column({ type: 'integer', name: 'patientId' })
   patientId: number;
 
+  @Column({ type: 'integer', name: 'categoryId', nullable: true })
+  categoryId: number;
+
   @Column({
     name: 'createdAt',
     type: 'timestamp',
@@ -45,4 +49,8 @@ export class Appointment {
   })
   @JoinColumn({ name: 'patientId' })
   patient: User;
+
+  @ManyToOne(() => Category, (cat) => cat.appointments, { nullable: true })
+  @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
+  category: Category;
 }

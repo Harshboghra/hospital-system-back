@@ -15,4 +15,9 @@ export class UserController {
   findAll() {
     return this.userService.findAll();
   }
+
+  @Post('validate')
+  validateUser(@Body() body: { email: string; password: string }) {
+    return this.userService.validateUser(body.email, body.password);
+  }
 }

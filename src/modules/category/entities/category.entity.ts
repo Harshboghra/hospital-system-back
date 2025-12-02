@@ -7,7 +7,7 @@ export class Category {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column({ unique: true, type: 'varchar', length: 100 })
   name: string;
 
   @OneToMany(() => User, (user) => user.category)

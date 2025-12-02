@@ -38,13 +38,13 @@ export class Appointment {
   })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.doctorAppointments, {
+  @ManyToOne(() => User, (user) => user.appointments, {
     onDelete: 'NO ACTION',
   })
   @JoinColumn({ name: 'doctorId' })
   doctor: User;
 
-  @ManyToOne(() => User, (user) => user.patientAppointments, {
+  @ManyToOne(() => User, (user) => user.appointments, {
     onDelete: 'NO ACTION',
   })
   @JoinColumn({ name: 'patientId' })

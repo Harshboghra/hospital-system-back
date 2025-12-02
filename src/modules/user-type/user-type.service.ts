@@ -14,7 +14,7 @@ export class UserTypeService extends AbstractService {
   }
 
   findAll() {
-    return this.findAll();
+    return this.find({});
   }
 
   findById(id: number) {

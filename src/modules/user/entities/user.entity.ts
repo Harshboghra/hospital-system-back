@@ -41,11 +41,11 @@ export class User {
   @JoinColumn([{ name: 'userTypeId', referencedColumnName: 'id' }])
   userType: UserType;
 
-  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
-  doctorAppointments: Appointment[];
-
-  @OneToMany(() => Appointment, (appointment) => appointment.patient)
-  patientAppointments: Appointment[];
+  @OneToMany(
+    () => Appointment,
+    (appointment) => appointment.doctor || appointment.patient,
+  )
+  appointments: Appointment[];
 
   @ManyToOne(() => Category, (category) => category.users)
   @JoinColumn([{ name: 'categoryId', referencedColumnName: 'id' }])

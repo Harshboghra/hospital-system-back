@@ -42,8 +42,8 @@ export abstract class AbstractService {
     data: any,
     relations: string[] = null,
   ): Promise<any> {
-    const entity = await this.repository.preload(data);
-    const errors = await validate(entity);
+    const errors = await validate(data);
+
     if (errors.length > 0) {
       const error = errors.map((e) => {
         return {
@@ -55,7 +55,9 @@ export abstract class AbstractService {
       });
       throw new BadRequestException(error);
     }
-    const res = await this.repository.update(id, data);
+
+    const entity = await this.repository.preload(data);
+    const res = await this.repository.update(id, entity);
     if (res && res.affected > 0) {
       return await this.findOne({
         where: { id },
@@ -73,5 +75,30 @@ export abstract class AbstractService {
     } else {
       return false;
     }
+  }
+
+  async countInRelation(relation: string, id: number): Promise<any> {
+    const entityName = this.repository.metadata.tableName;
+    let queryBuilder = this.repository.createQueryBuilder(`${entityName}`);
+    const relations = relation.split('.');
+    for (let i = 0; i <= relations.length - 1; i++) {
+      if (i == 0) {
+        queryBuilder = queryBuilder.innerJoinAndSelect(
+          `${entityName}.${relations[i]}`,
+          `${relations[i]}${i}`,
+        );
+      } else {
+        queryBuilder = queryBuilder.innerJoinAndSelect(
+          `${relations[i - 1]}${i - 1}.${relations[i]}`,
+          `${relations[i]}${i}`,
+        );
+      }
+    }
+
+    const count = await queryBuilder
+      .where(`${entityName}.id = :id`, { id })
+      .getCount();
+
+    return count;
   }
 }

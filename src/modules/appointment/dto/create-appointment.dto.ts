@@ -16,4 +16,7 @@ export class CreateAppointmentDto {
 
   @IsNumber()
   patientId: number;
+
+  @IsNumber()
+  categoryId: number;
 }

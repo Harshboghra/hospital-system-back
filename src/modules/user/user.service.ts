@@ -4,6 +4,7 @@ import { userRepository } from './repository/user.repository';
 import { AbstractService } from 'src/common/abstract.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { USER_TYPE } from '../user-type/constant';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -64,7 +65,19 @@ export class UserService extends AbstractService {
   async findByUserTypeId(userTypeId: number) {
     return this.find({
       where: { userType: { id: userTypeId } },
-      relations: ['userType'],
+      relations: ['category'],
+      order: { id: 'desc' },
+    });
+  }
+
+  async findDoctorByCategoryId(categoryId: number) {
+    return this.find({
+      where: {
+        category: { id: categoryId },
+        userType: { id: USER_TYPE.DOCTOR },
+      },
+      relations: ['category'],
+      order: { id: 'desc' },
     });
   }
 

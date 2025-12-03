@@ -5,8 +5,8 @@ export class CreateAppointmentDto {
   @IsNotEmpty()
   type: string;
 
-  @IsEnum(['upcoming', 'ongoing', 'completed'] as const)
-  state: 'upcoming' | 'ongoing' | 'completed';
+  @IsEnum(['upcoming', 'completed', 'canceled'] as const)
+  state: 'upcoming' | 'completed' | 'canceled';
 
   @IsNotEmpty()
   time: Date;

@@ -17,7 +17,7 @@ export class Appointment {
   type: string;
 
   @Column({ name: 'state', type: 'varchar', length: 20 })
-  state: 'upcoming' | 'ongoing' | 'completed';
+  state: 'upcoming' | 'completed' | 'canceled';
 
   @Column({ name: 'time', type: 'timestamp' })
   time: Date;

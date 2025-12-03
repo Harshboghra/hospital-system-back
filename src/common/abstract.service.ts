@@ -42,21 +42,12 @@ export abstract class AbstractService {
     data: any,
     relations: string[] = null,
   ): Promise<any> {
-    const errors = await validate(data);
+    const entity = await this.repository.create(data);
 
-    if (errors.length > 0) {
-      const error = errors.map((e) => {
-        return {
-          target: e.target.constructor.name,
-          error: {
-            [e.property]: Object.values(e.constraints).join(' '),
-          },
-        };
-      });
-      throw new BadRequestException(error);
+    if (!entity) {
+      throw new BadRequestException('Entity not found');
     }
 
-    const entity = await this.repository.preload(data);
     const res = await this.repository.update(id, entity);
     if (res && res.affected > 0) {
       return await this.findOne({

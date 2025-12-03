@@ -37,4 +37,9 @@ export class UserController {
   findByUserTypeId(@Param('userTypeId') userTypeId: number) {
     return this.userService.findByUserTypeId(userTypeId);
   }
+
+  @Get('doctorsByCategory/:categoryId')
+  findDoctorByCategoryId(@Param('categoryId') categoryId: number) {
+    return this.userService.findDoctorByCategoryId(categoryId);
+  }
 }

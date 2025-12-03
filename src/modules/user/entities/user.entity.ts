@@ -30,6 +30,9 @@ export class User {
   @Column({ type: 'integer', name: 'userTypeId' })
   userTypeId: number;
 
+  @Column({ type: 'integer', name: 'categoryId', nullable: true })
+  categoryId: number;
+
   @Column({
     name: 'createdAt',
     type: 'timestamp',
@@ -41,11 +44,11 @@ export class User {
   @JoinColumn([{ name: 'userTypeId', referencedColumnName: 'id' }])
   userType: UserType;
 
-  @OneToMany(
-    () => Appointment,
-    (appointment) => appointment.doctor || appointment.patient,
-  )
-  appointments: Appointment[];
+  @OneToMany(() => Appointment, (appointment) => appointment.doctor)
+  doctorAppointments: Appointment[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.patient)
+  patientAppointments: Appointment[];
 
   @ManyToOne(() => Category, (category) => category.users)
   @JoinColumn([{ name: 'categoryId', referencedColumnName: 'id' }])

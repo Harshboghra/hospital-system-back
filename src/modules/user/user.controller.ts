@@ -31,4 +31,10 @@ export class UserController {
   remove(@Param('id') id: number) {
     return this.userService.remove(id);
   }
+
+  // get by userTypeId
+  @Get('byUserType/:userTypeId')
+  findByUserTypeId(@Param('userTypeId') userTypeId: number) {
+    return this.userService.findByUserTypeId(userTypeId);
+  }
 }

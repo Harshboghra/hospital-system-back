@@ -3,7 +3,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { userRepository } from './repository/user.repository';
 import { AbstractService } from 'src/common/abstract.service';
 import * as bcrypt from 'bcrypt';
-import { cleanedData } from 'src/common/function';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
@@ -13,7 +12,7 @@ export class UserService extends AbstractService {
   }
 
   async create(dto: CreateUserDto) {
-    if (dto.password) {
+    if (dto?.password) {
       const salt = await bcrypt.genSalt(10);
       dto.password = await bcrypt.hash(dto.password, salt);
     }
@@ -62,11 +61,22 @@ export class UserService extends AbstractService {
         };
   }
 
+  async findByUserTypeId(userTypeId: number) {
+    return this.find({
+      where: { userType: { id: userTypeId } },
+      relations: ['userType'],
+    });
+  }
+
   private async checkRelatedObjects(id: number): Promise<string> {
     const relations = [
       {
-        relation: 'appointments',
-        message: 'Appointments exist',
+        relation: 'doctorAppointments',
+        message: 'appointments as a doctor',
+      },
+      {
+        relation: 'patientAppointments',
+        message: 'appointments as a patient',
       },
     ];
     let errorMessage = '';

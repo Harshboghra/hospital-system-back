@@ -92,4 +92,8 @@ export abstract class AbstractService {
 
     return count;
   }
+
+  async countByCondition(options: FindOneOptions = {}): Promise<number> {
+    return this.repository.count(options);
+  }
 }

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { AbstractService } from 'src/common/abstract.service';
 import { appointmentRepository } from './repository/user.repository';
-import { Between } from 'typeorm';
+import { Between, FindOneOptions } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { USER_TYPE } from '../user-type/constant';
@@ -51,6 +51,10 @@ export class AppointmentService extends AbstractService {
       id: id,
       state: APPOINTMENT_STATE.CANCELED,
     });
+  }
+
+  async count(options: FindOneOptions = {}): Promise<number> {
+    return this.countByCondition(options);
   }
 
   private async validateAppointmentData(

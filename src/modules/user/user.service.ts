@@ -5,6 +5,7 @@ import { AbstractService } from 'src/common/abstract.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_TYPE } from '../user-type/constant';
+import { FindOneOptions } from 'typeorm';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -79,6 +80,10 @@ export class UserService extends AbstractService {
       relations: ['category'],
       order: { id: 'desc' },
     });
+  }
+
+  async count(options: FindOneOptions = {}): Promise<number> {
+    return this.countByCondition(options);
   }
 
   private async checkRelatedObjects(id: number): Promise<string> {

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -29,8 +22,13 @@ export class AppointmentController {
     return this.appointmentService.findAll();
   }
 
+  @Get(':id')
+  findById(@Param('id') id: number) {
+    return this.appointmentService.findById(id);
+  }
+
   @Post('cancel/:id')
-  cancelAppointment(@Param('id', ParseIntPipe) id: number) {
+  cancelAppointment(@Param('id') id: number) {
     return this.appointmentService.cancelAppointment(id);
   }
 }

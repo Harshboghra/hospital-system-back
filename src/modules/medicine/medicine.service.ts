@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from 'src/common/abstract.service';
 import { medicineRepository } from './repository/medicine.repository';
-import { CreateAppointmentDto } from '../appointment/dto/create-appointment.dto';
+import { UpdateMedicineDto } from './dto/update-medicine.dto';
+import { CreateMedicineDto } from './dto/create-medicine.dto';
 
 @Injectable()
 export class MedicineService extends AbstractService {
@@ -15,11 +16,11 @@ export class MedicineService extends AbstractService {
     });
   }
 
-  async create(dto: CreateAppointmentDto) {
+  async create(dto: CreateMedicineDto) {
     return this.abstractCreate(dto);
   }
 
-  async update(id: number, dto: CreateAppointmentDto) {
+  async update(id: number, dto: UpdateMedicineDto) {
     return this.abstractUpdate(id, dto);
   }
 

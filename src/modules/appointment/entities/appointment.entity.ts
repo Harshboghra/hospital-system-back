@@ -43,13 +43,13 @@ export class Appointment {
   @ManyToOne(() => User, (user) => user.doctorAppointments, {
     onDelete: 'NO ACTION',
   })
-  @JoinColumn({ name: 'doctorId' })
+  @JoinColumn({ name: 'doctorId', referencedColumnName: 'id' })
   doctor: User;
 
   @ManyToOne(() => User, (user) => user.patientAppointments, {
     onDelete: 'NO ACTION',
   })
-  @JoinColumn({ name: 'patientId' })
+  @JoinColumn({ name: 'patientId', referencedColumnName: 'id' })
   patient: User;
 
   @ManyToOne(() => Category, (cat) => cat.appointments, { nullable: true })

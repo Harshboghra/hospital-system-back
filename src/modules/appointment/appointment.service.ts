@@ -37,6 +37,10 @@ export class AppointmentService extends AbstractService {
     });
   }
 
+  findById(id: number) {
+    return this.findOne({ where: { id }, relations: ['doctor', 'patient'] });
+  }
+
   async cancelAppointment(id: number) {
     const appointment = await this.findOne({ where: { id }, select: ['id'] });
     if (!appointment) {

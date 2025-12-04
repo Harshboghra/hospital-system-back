@@ -1,10 +1,12 @@
 import { Category } from 'src/modules/category/entities/category.entity';
+import { Medicine } from 'src/modules/medicine/entities/medicine.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -53,4 +55,7 @@ export class Appointment {
   @ManyToOne(() => Category, (cat) => cat.appointments, { nullable: true })
   @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
   category: Category;
+
+  @OneToMany(() => Medicine, (medicine) => medicine.appointment)
+  medicines: Medicine[];
 }

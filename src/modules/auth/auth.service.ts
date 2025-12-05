@@ -8,6 +8,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserService } from 'src/modules/user/user.service';
 import { User } from 'src/modules/user/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { USER_TYPE } from '../user-type/constant';
 
 @Injectable()
 export class AuthService {
@@ -65,9 +66,10 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(dto.password, salt);
 
-    const toCreate: RegisterDto = {
+    const toCreate = {
       ...dto,
       password: hashed,
+      userTypeId: USER_TYPE.PATIENT,
     };
 
     // this uses UserService, but UserService does not hash

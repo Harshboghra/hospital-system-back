@@ -16,17 +16,17 @@ export abstract class AbstractService {
   }
 
   async abstractCreate(dto: any, relations: string[] = null): Promise<any> {
-    const errors = await validate(dto);
+    // const errors = await validate(dto);
 
-    if (errors.length > 0) {
-      const formatted = errors.map((e) => ({
-        target: e.target.constructor.name,
-        error: {
-          [e.property]: Object.values(e.constraints).join(' '),
-        },
-      }));
-      throw new BadRequestException(formatted);
-    }
+    // if (errors.length > 0) {
+    //   const formatted = errors.map((e) => ({
+    //     target: e.target.constructor.name,
+    //     error: {
+    //       [e.property]: Object.values(e.constraints).join(' '),
+    //     },
+    //   }));
+    //   throw new BadRequestException(formatted);
+    // }
 
     const entity = this.repository.create(dto);
     const saved = await this.repository.save(entity);

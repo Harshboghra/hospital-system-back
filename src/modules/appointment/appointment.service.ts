@@ -31,10 +31,23 @@ export class AppointmentService extends AbstractService {
     return this.abstractUpdate(id, data);
   }
 
-  findAll() {
-    return this.find({
-      relations: ['doctor', 'patient'],
-    });
+  findAll(user: User) {
+    if (Number(user.userTypeId) === USER_TYPE.ADMIN) {
+      return this.find({
+        relations: ['doctor', 'patient'],
+      });
+    } else if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
+      return this.find({
+        where: { doctorId: user.id },
+        relations: ['doctor', 'patient'],
+      });
+    } else if (Number(user.userTypeId) === USER_TYPE.PATIENT) {
+      return this.find({
+        where: { patientId: user.id },
+        relations: ['doctor', 'patient'],
+      });
+    }
+    return [];
   }
 
   findById(id: number) {

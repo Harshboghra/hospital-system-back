@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -18,8 +18,9 @@ export class AppointmentController {
   }
 
   @Get()
-  findAll() {
-    return this.appointmentService.findAll();
+  findAll(@Req() req) {
+    const user = req.user;
+    return this.appointmentService.findAll(user);
   }
 
   @Get(':id')

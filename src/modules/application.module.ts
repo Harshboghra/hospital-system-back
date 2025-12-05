@@ -1,4 +1,5 @@
 import { AppointmentModule } from './appointment/appointment.module';
+import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { MedicineModule } from './medicine/medicine.module';
@@ -12,4 +13,5 @@ export const ApplicationModules = [
   CategoryModule,
   MedicineModule,
   DashboardModule,
+  AuthModule,
 ];

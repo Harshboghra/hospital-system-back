@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { userRepository } from './repository/user.repository';
 import { AbstractService } from 'src/common/abstract.service';
-import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_TYPE } from '../user-type/constant';
 import { FindOneOptions } from 'typeorm';
@@ -14,10 +13,6 @@ export class UserService extends AbstractService {
   }
 
   async create(dto: CreateUserDto) {
-    if (dto?.password) {
-      const salt = await bcrypt.genSalt(10);
-      dto.password = await bcrypt.hash(dto.password, salt);
-    }
     return this.abstractCreate(dto, ['userType']);
   }
 
@@ -42,25 +37,9 @@ export class UserService extends AbstractService {
     });
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.findOne({
-      select: ['id', 'password'],
-      where: { email },
-    });
-
-    if (!user)
-      return {
-        id: null,
-        message: 'User not found',
-      };
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    return isMatch
-      ? { id: user.id }
-      : {
-          id: null,
-          message: 'Password is incorrect',
-        };
+  async changePassword(id: number, newPassword: string) {
+    await this.abstractUpdate(id, { password: newPassword });
+    return true;
   }
 
   async findByUserTypeId(userTypeId: number) {

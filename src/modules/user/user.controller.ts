@@ -2,6 +2,8 @@ import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { USER_TYPE } from '../user-type/constant';
 
 @Controller('user')
 export class UserController {
@@ -22,17 +24,11 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Post('validate')
-  validateUser(@Body() body: { email: string; password: string }) {
-    return this.userService.validateUser(body.email, body.password);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.userService.remove(id);
   }
 
-  // get by userTypeId
   @Get('byUserType/:userTypeId')
   findByUserTypeId(@Param('userTypeId') userTypeId: number) {
     return this.userService.findByUserTypeId(userTypeId);

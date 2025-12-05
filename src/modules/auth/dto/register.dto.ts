@@ -1,13 +1,19 @@
 import {
-  IsString,
-  IsNotEmpty,
   IsEmail,
+  IsNotEmpty,
   IsNumber,
-  ValidateIf,
+  IsOptional,
+  IsString,
 } from 'class-validator';
-import { USER_TYPE } from 'src/modules/user-type/constant';
 
-export class CreateUserDto {
+export class RegisterDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -16,13 +22,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  @IsEmail()
-  email: string;
-
+  @IsOptional()
   @IsNumber()
   userTypeId: number;
 
-  @ValidateIf((o) => o.userTypeId === USER_TYPE.DOCTOR)
+  @IsOptional()
   @IsNumber()
   categoryId: number;
 }

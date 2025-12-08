@@ -24,8 +24,10 @@ export class AppointmentService extends AbstractService {
   }
 
   async update(id: number, data: UpdateAppointmentDto) {
+    const existingAppointment = await this.findOne({ where: { id } });
+
     // Validate appointment data
-    await this.validateAppointmentData(data);
+    await this.validateAppointmentData({ ...existingAppointment, ...data });
 
     // Update appointment
     return this.abstractUpdate(id, data);
@@ -51,7 +53,10 @@ export class AppointmentService extends AbstractService {
   }
 
   findById(id: number) {
-    return this.findOne({ where: { id }, relations: ['doctor', 'patient'] });
+    return this.findOne({
+      where: { id },
+      relations: ['doctor', 'patient', 'medicines'],
+    });
   }
 
   async cancelAppointment(id: number) {

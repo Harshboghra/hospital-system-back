@@ -4,6 +4,8 @@ import { AppointmentService } from '../appointment/appointment.service';
 import { UserService } from '../user/user.service';
 import { USER_TYPE } from '../user-type/constant';
 import { CategoryService } from '../category/category.service';
+import { Appointment } from '../appointment/entities/appointment.entity';
+import { APPOINTMENT_STATE } from '../appointment/constant';
 
 @Injectable()
 export class DashboardService {
@@ -213,5 +215,99 @@ export class DashboardService {
       doctorData, // [3, 2, 1, ...]
       patientData, // [15, 10, 8, ...] (unique patients)
     };
+  }
+
+  async getDoctorAppointmentsToday(doctorId: number) {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const appointments: Appointment[] = await this.appointmentService.find({
+      where: {
+        doctorId,
+        time: Between(startOfDay, endOfDay),
+      },
+      relations: ['patient', 'category'],
+      order: { time: 'ASC' },
+    });
+    return appointments.map((appt) => ({
+      id: appt.id,
+      time: appt.time.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      patientName: appt.patient ? `${appt.patient.name}` : 'Unknown',
+      reason: appt.category?.name,
+      state: appt.state,
+    }));
+  }
+
+  async getDoctorUpcomingDaysAppointments(doctorId: number) {
+    const today = new Date();
+    const upcomingDays = [];
+    for (let offset = 0; offset <= 6; offset++) {
+      const date = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + offset,
+      );
+
+      const dateLabel =
+        offset === 1
+          ? 'Tomorrow'
+          : date.toLocaleDateString('en-US', { weekday: 'short' });
+
+      const startOfDay = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+      const endOfDay = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
+      const count = await this.appointmentService.count({
+        where: {
+          doctorId,
+          time: Between(startOfDay, endOfDay),
+        },
+      });
+      upcomingDays.push({ dateLabel, date, count });
+    }
+    return upcomingDays;
+  }
+
+  async getDoctorDailyStats(doctorId: number) {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const appointments: Appointment[] = await this.appointmentService.find({
+      where: {
+        doctorId,
+        time: Between(startOfDay, endOfDay),
+      },
+      order: { time: 'ASC' },
+    });
+    const stats = {
+      totalToday: appointments.length,
+      upcoming: appointments.filter(
+        (appt) => appt.state === APPOINTMENT_STATE.UPCOMING,
+      ).length,
+      completed: appointments.filter(
+        (appt) => appt.state === APPOINTMENT_STATE.COMPLETED,
+      ).length,
+      canceled: appointments.filter(
+        (appt) => appt.state === APPOINTMENT_STATE.CANCELED,
+      ).length,
+    };
+    return stats;
   }
 }

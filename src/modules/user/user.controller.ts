@@ -1,9 +1,12 @@
-import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { USER_TYPE } from '../user-type/constant';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('user')
 export class UserController {
@@ -37,5 +40,38 @@ export class UserController {
   @Get('doctorsByCategory/:categoryId')
   findDoctorByCategoryId(@Param('categoryId') categoryId: number) {
     return this.userService.findDoctorByCategoryId(categoryId);
+  }
+
+  @Patch(':id/profile-image')
+  @UseInterceptors(
+    FileInterceptor('profilePicture', {
+      storage: diskStorage({
+        destination: './uploads/tmp', // temp folder
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5 MB
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/^image\/(jpeg|png|jpg|webp)$/)) {
+          return cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async updateProfileImage(
+    @Param('id') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const updatedUser = await this.userService.updateProfileImage(userId, file);
+    return {
+      message: 'Profile image updated',
+      profileImageUrl: updatedUser.profileImageUrl,
+    };
   }
 }

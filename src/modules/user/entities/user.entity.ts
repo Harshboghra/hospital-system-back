@@ -33,6 +33,12 @@ export class User {
   @Column({ type: 'integer', name: 'categoryId', nullable: true })
   categoryId: number;
 
+  @Column({ name: 'profile_image_url', type: 'text', nullable: true })
+  profileImageUrl?: string | null;
+
+  @Column({ name: 'profile_image_public_id', type: 'text', nullable: true })
+  profileImagePublicId?: string | null;
+
   @Column({
     name: 'createdAt',
     type: 'timestamp',

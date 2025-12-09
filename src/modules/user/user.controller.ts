@@ -2,8 +2,6 @@ import { Controller, Post, Body, Get, Param, Delete, UploadedFile, UseIntercepto
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { USER_TYPE } from '../user-type/constant';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';

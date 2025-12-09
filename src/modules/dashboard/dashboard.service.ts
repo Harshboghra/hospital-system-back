@@ -6,6 +6,7 @@ import { USER_TYPE } from '../user-type/constant';
 import { CategoryService } from '../category/category.service';
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { APPOINTMENT_STATE } from '../appointment/constant';
+import { MedicineService } from '../medicine/medicine.service';
 
 @Injectable()
 export class DashboardService {
@@ -13,6 +14,7 @@ export class DashboardService {
     protected userService: UserService,
     protected appointmentService: AppointmentService,
     protected categoryService: CategoryService,
+    protected medicineService: MedicineService,
   ) {}
 
   async getCounts() {
@@ -309,5 +311,40 @@ export class DashboardService {
       ).length,
     };
     return stats;
+  }
+
+  async getPatientDashboardInfo(patientId: number) {
+    // total upcoming appointments
+    const totalUpcoming = await this.appointmentService.countByCondition({
+      where: { patientId, state: APPOINTMENT_STATE.UPCOMING },
+    });
+
+    // total completed
+    const totalCompleted = await this.appointmentService.countByCondition({
+      where: { patientId, state: APPOINTMENT_STATE.COMPLETED },
+    });
+
+    // last completed appointment (the one that has medicines)
+    const lastCompletedAppointment = await this.appointmentService.findOne({
+      where: { patientId, state: APPOINTMENT_STATE.COMPLETED },
+      order: { time: 'DESC' },
+    });
+
+    let activeMedicines = 0;
+
+    if (lastCompletedAppointment) {
+      activeMedicines = await this.medicineService.countByCondition({
+        where: { appointmentId: lastCompletedAppointment.id },
+      });
+    }
+
+    return {
+      totalUpcoming,
+      totalCompleted,
+      lastVisitDate: lastCompletedAppointment
+        ? lastCompletedAppointment.time
+        : null,
+      activeMedicines,
+    };
   }
 }

@@ -347,4 +347,28 @@ export class DashboardService {
       activeMedicines,
     };
   }
+
+  async getNextAppointmentForPatient(patientId: number) {
+    const today = new Date();
+
+    const nextAppointment = await this.appointmentService.findOne({
+      where: {
+        patientId,
+        time: Between(today, new Date('2100-12-31')),
+        state: APPOINTMENT_STATE.UPCOMING,
+      },
+      order: { time: 'ASC' },
+      relations: ['doctor', 'category'],
+    });
+    if (!nextAppointment) {
+      return null;
+    }
+    return {
+      ...nextAppointment,
+      doctorName: nextAppointment.doctor
+        ? `Dr. ${nextAppointment.doctor.name}`
+        : 'Unknown',
+      reason: nextAppointment.category?.name || 'N/A',
+    };
+  }
 }

@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddProfileImageToUser1733600000000 implements MigrationInterface {
-  name = 'AddProfileImageToUser1733600000000';
-
+export class Hospital1765600000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "user"

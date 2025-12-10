@@ -1,5 +1,4 @@
 import { Appointment } from 'src/modules/appointment/entities/appointment.entity';
-import { Category } from 'src/modules/category/entities/category.entity';
 import { UserType } from 'src/modules/user-type/entities/user-type.entity';
 import {
   Entity,
@@ -8,7 +7,10 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
+import { DoctorProfile } from './doctor-profile.entity';
+import { PatientProfile } from './patient-profile.entity';
 
 @Entity('user')
 export class User {
@@ -29,9 +31,6 @@ export class User {
 
   @Column({ type: 'integer', name: 'userTypeId' })
   userTypeId: number;
-
-  @Column({ type: 'integer', name: 'categoryId', nullable: true })
-  categoryId: number;
 
   @Column({ name: 'profile_image_url', type: 'text', nullable: true })
   profileImageUrl?: string | null;
@@ -56,7 +55,13 @@ export class User {
   @OneToMany(() => Appointment, (appointment) => appointment.patient)
   patientAppointments: Appointment[];
 
-  @ManyToOne(() => Category, (category) => category.users)
-  @JoinColumn([{ name: 'categoryId', referencedColumnName: 'id' }])
-  category: Category;
+  @OneToOne(() => DoctorProfile, (profile) => profile.user, {
+    cascade: true,
+  })
+  doctorProfile?: DoctorProfile | null;
+
+  @OneToOne(() => PatientProfile, (profile) => profile.user, {
+    cascade: true,
+  })
+  patientProfile?: PatientProfile | null;
 }

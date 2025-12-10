@@ -22,7 +22,8 @@ export class AuthService {
     // get user with password (select: false in entity!)
     const user: User = await this.userService.findOne({
       where: { email },
-      select: ['id', 'password', 'email', 'userTypeId', 'categoryId'],
+      select: ['id', 'password', 'email', 'userTypeId'],
+      relations: ['userType', 'doctorProfile', 'doctorProfile.category', 'patientProfile'],
     });
 
     if (!user || !user.password) {
@@ -38,7 +39,6 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       userTypeId: user.userTypeId,
-      categoryId: user.categoryId,
     };
 
     const token = this.jwtService.sign(payload);
@@ -70,18 +70,15 @@ export class AuthService {
       ...dto,
       password: hashed,
       userTypeId: USER_TYPE.PATIENT,
+      patientProfile: {},
     };
 
-    // this uses UserService, but UserService does not hash
-    const user: User = (await this.userService.abstractCreate(toCreate, [
-      'userType',
-    ])) as User;
+    const user = (await this.userService.create(toCreate)) as User;
 
     const payload = {
       sub: user.id,
       email: user.email,
       userTypeId: user.userTypeId,
-      categoryId: user.categoryId,
     };
 
     const token = this.jwtService.sign(payload);
@@ -151,7 +148,7 @@ export class AuthService {
   async checkPasswordStatusByEmail(email: string) {
     const user = await this.userService.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'userTypeId', 'categoryId'],
+      select: ['id', 'email', 'password', 'userTypeId'],
     });
 
     if (!user) {

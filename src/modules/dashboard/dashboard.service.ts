@@ -179,29 +179,23 @@ export class DashboardService {
       labels.push(category.name);
 
       // 1) Count doctors in this category
-      const doctorCount = await this.userService.countByCondition({
-        where: {
-          userTypeId: USER_TYPE.DOCTOR,
-          categoryId: category.id,
-        },
-      });
-      doctorData.push(doctorCount);
+      const doctorsInCategory = await this.userService.findDoctorByCategoryId(
+        category.id,
+      );
+      doctorData.push(doctorsInCategory.length);
 
       // 2) Find appointments where DOCTOR belongs to this category
-      //    (appointment itself does not have categoryId)
       const appointments = await this.appointmentService.find({
-        where: {
-          doctor: {
-            categoryId: category.id,
-          },
-        },
-        relations: ['doctor', 'patient'], // ensure we have patient info
+        relations: ['doctor', 'doctor.doctorProfile', 'patient'],
       });
+      const filteredByCategory = appointments.filter(
+        (appt) => appt.doctor?.doctorProfile?.categoryId === category.id,
+      );
 
       // 3) Get UNIQUE patients by patient id
       const uniquePatientIds = new Set<number>();
 
-      for (const appt of appointments) {
+      for (const appt of filteredByCategory) {
         // adjust according to your entity shape (patient.id or appt.patientId)
         const patientId = (appt as any).patientId ?? appt.patient?.id; // fallback if you have relation
 

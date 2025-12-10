@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { userRepository } from './repository/user.repository';
 import { AbstractService } from 'src/common/abstract.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_TYPE } from '../user-type/constant';
@@ -13,6 +12,10 @@ import { FindOneOptions } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CLOUDINARY } from '../cloudinary/cloudinary.provider';
 import { v2 as Cloudinary } from 'cloudinary';
+import { dataSource } from 'src/core/data-source';
+import { DoctorProfile } from './entities/doctor-profile.entity';
+import { PatientProfile } from './entities/patient-profile.entity';
+import { userRepository } from './repository/user.repository';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -24,7 +27,45 @@ export class UserService extends AbstractService {
   }
 
   async create(dto: CreateUserDto) {
-    return this.abstractCreate(dto, ['userType']);
+    return dataSource.transaction(async (manager) => {
+      const { doctorProfile, patientProfile, ...userPayload } = dto;
+
+      if (dto.userTypeId === USER_TYPE.DOCTOR && !doctorProfile) {
+        throw new BadRequestException('Doctor profile details are required');
+      }
+      if (dto.userTypeId === USER_TYPE.DOCTOR && !doctorProfile?.categoryId) {
+        throw new BadRequestException('Doctor category is required');
+      }
+
+      const user = manager.create(User, userPayload);
+      const savedUser = await manager.save(User, user);
+
+      if (dto.userTypeId === USER_TYPE.DOCTOR) {
+        const profilePayload = doctorProfile || {};
+        const profile = manager.create(DoctorProfile, {
+          ...profilePayload,
+          userId: savedUser.id,
+        });
+        await manager.save(DoctorProfile, profile);
+      } else if (dto.userTypeId === USER_TYPE.PATIENT) {
+        const profilePayload = patientProfile || {};
+        const profile = manager.create(PatientProfile, {
+          ...profilePayload,
+          userId: savedUser.id,
+        });
+        await manager.save(PatientProfile, profile);
+      }
+
+      return manager.findOne(User, {
+        where: { id: savedUser.id },
+        relations: [
+          'userType',
+          'doctorProfile',
+          'doctorProfile.category',
+          'patientProfile',
+        ],
+      });
+    });
   }
 
   async update(id: number, dto: UpdateUserDto) {
@@ -36,7 +77,11 @@ export class UserService extends AbstractService {
       throw new NotFoundException('User not found');
     }
 
-    if (dto.userTypeId !== user.userTypeId) {
+    if (
+      dto.userTypeId !== undefined &&
+      dto.userTypeId !== null &&
+      dto.userTypeId !== user.userTypeId
+    ) {
       if (user.doctorAppointments.length > 0) {
         throw new BadRequestException({
           message:
@@ -55,35 +100,114 @@ export class UserService extends AbstractService {
       }
     }
 
-    if (dto.categoryId && dto.userTypeId !== USER_TYPE.DOCTOR) {
-      throw new BadRequestException({
-        message: 'Only users with Doctor type can have a category.',
-        details: 'Set user type to Doctor to assign a category.',
+    return dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(User);
+      const existing = await repo.findOne({
+        where: { id },
+        relations: ['doctorProfile', 'patientProfile'],
       });
-    }
 
-    if (dto.userTypeId === USER_TYPE.DOCTOR) {
-      if (!dto.categoryId) {
+      if (!existing) {
+        throw new NotFoundException('User not found');
+      }
+
+      const { doctorProfile, patientProfile, ...userPayload } = dto;
+
+      const targetUserType: number =
+        userPayload.userTypeId ?? existing.userTypeId;
+
+      if (userPayload.userTypeId && targetUserType !== existing.userTypeId) {
+        if (existing.doctorAppointments.length > 0) {
+          throw new BadRequestException({
+            message:
+              'Cannot change user type to Doctor because the user has existing appointments as a doctor.',
+            details:
+              'User has existing appointments as a doctor. Change the appointments or delete them before changing the user type.',
+          });
+        }
+        if (existing.patientAppointments.length > 0) {
+          throw new BadRequestException({
+            message:
+              'Cannot change user type to Patient because the user has existing appointments as a patient.',
+            details:
+              'User has existing appointments as a patient. Change the appointments or delete them before changing the user type.',
+          });
+        }
+      }
+
+      if (userPayload.userTypeId === USER_TYPE.DOCTOR && !doctorProfile) {
         throw new BadRequestException({
-          message: 'Doctor users must have a category assigned.',
-          details: 'Please provide a valid categoryId for the doctor user.',
+          message: 'Doctor profile details are required.',
+          details: 'Please provide doctor profile payload.',
         });
       }
-    }
+      if (
+        targetUserType === USER_TYPE.DOCTOR &&
+        (!doctorProfile || !doctorProfile.categoryId)
+      ) {
+        throw new BadRequestException('Doctor category is required.');
+      }
 
-    if (
-      user.categoryId !== dto.categoryId &&
-      user.userTypeId === USER_TYPE.DOCTOR
-    ) {
-      const hasAppointments = user.doctorAppointments.length > 0;
-      if (hasAppointments)
+      if (
+        existing.userTypeId === USER_TYPE.DOCTOR &&
+        targetUserType === USER_TYPE.DOCTOR &&
+        existing.doctorProfile?.categoryId !== doctorProfile?.categoryId &&
+        existing.doctorAppointments.length > 0
+      ) {
         throw new BadRequestException(
-          'Cannot change category because the doctor has existing appointments.',
+          'Cannot change doctor category because the doctor has existing appointments.',
         );
-    }
+      }
 
-    // dto.userTypeId === USER_TYPE.DOCTOR
-    return this.abstractUpdate(id, dto);
+      await repo.update(id, userPayload);
+
+      if (targetUserType === USER_TYPE.DOCTOR) {
+        const doctorRepo = manager.getRepository(DoctorProfile);
+        const current = await doctorRepo.findOne({ where: { userId: id } });
+        const payload = { ...doctorProfile, userId: id };
+        if (current) {
+          await doctorRepo.update({ userId: id }, payload);
+        } else {
+          await doctorRepo.save(payload);
+        }
+
+        // remove patient profile if switching
+        if (
+          existing.patientProfile &&
+          Number(targetUserType) !== USER_TYPE.PATIENT
+        ) {
+          await manager.getRepository(PatientProfile).delete({ userId: id });
+        }
+      } else if (targetUserType === USER_TYPE.PATIENT) {
+        const patientRepo = manager.getRepository(PatientProfile);
+        const current = await patientRepo.findOne({ where: { userId: id } });
+        const payload = { ...(patientProfile || {}), userId: id };
+        if (current) {
+          await patientRepo.update({ userId: id }, payload);
+        } else {
+          await patientRepo.save(payload);
+        }
+
+        // remove doctor profile when downgrading to patient
+        if (existing.doctorProfile && Number(targetUserType) !== USER_TYPE.DOCTOR) {
+          await manager.getRepository(DoctorProfile).delete({ userId: id });
+        }
+      } else {
+        // neither doctor nor patient -> clean up profiles
+        await manager.getRepository(DoctorProfile).delete({ userId: id });
+        await manager.getRepository(PatientProfile).delete({ userId: id });
+      }
+
+      return repo.findOne({
+        where: { id },
+        relations: [
+          'userType',
+          'doctorProfile',
+          'doctorProfile.category',
+          'patientProfile',
+        ],
+      });
+    });
   }
 
   async remove(id: number) {
@@ -99,7 +223,12 @@ export class UserService extends AbstractService {
 
   findAll() {
     return this.find({
-      relations: ['userType'],
+      relations: [
+        'userType',
+        'doctorProfile',
+        'doctorProfile.category',
+        'patientProfile',
+      ],
     });
   }
 
@@ -111,7 +240,12 @@ export class UserService extends AbstractService {
   async findByUserTypeId(userTypeId: number) {
     return this.find({
       where: { userType: { id: userTypeId } },
-      relations: ['category'],
+      relations: [
+        'userType',
+        'doctorProfile',
+        'doctorProfile.category',
+        'patientProfile',
+      ],
       order: { id: 'desc' },
     });
   }
@@ -119,10 +253,10 @@ export class UserService extends AbstractService {
   async findDoctorByCategoryId(categoryId: number) {
     return this.find({
       where: {
-        category: { id: categoryId },
         userType: { id: USER_TYPE.DOCTOR },
+        doctorProfile: { categoryId },
       },
-      relations: ['category'],
+      relations: ['userType', 'doctorProfile', 'doctorProfile.category'],
       order: { id: 'desc' },
     });
   }

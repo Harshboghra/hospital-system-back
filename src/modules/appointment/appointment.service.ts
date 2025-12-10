@@ -36,17 +36,17 @@ export class AppointmentService extends AbstractService {
   findAll(user: User) {
     if (Number(user.userTypeId) === USER_TYPE.ADMIN) {
       return this.find({
-        relations: ['doctor', 'patient'],
+        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
       });
     } else if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
       return this.find({
         where: { doctorId: user.id },
-        relations: ['doctor', 'patient'],
+        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
       });
     } else if (Number(user.userTypeId) === USER_TYPE.PATIENT) {
       return this.find({
         where: { patientId: user.id },
-        relations: ['doctor', 'patient'],
+        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
       });
     }
     return [];
@@ -55,7 +55,13 @@ export class AppointmentService extends AbstractService {
   findById(id: number) {
     return this.findOne({
       where: { id },
-      relations: ['doctor', 'patient', 'medicines'],
+      relations: [
+        'doctor',
+        'doctor.doctorProfile',
+        'patient',
+        'patient.patientProfile',
+        'medicines',
+      ],
     });
   }
 
@@ -91,21 +97,29 @@ export class AppointmentService extends AbstractService {
     // Validate doctor role
     const doctor: User = await this.userService.findOne({
       where: { id: doctorId },
+      relations: ['doctorProfile'],
     });
 
     if (!doctor || doctor.userTypeId !== USER_TYPE.DOCTOR) {
       throw new BadRequestException('Selected doctorId is not a doctor');
     }
-    if (doctor.categoryId !== categoryId) {
+    if (!doctor.doctorProfile) {
+      throw new BadRequestException('Doctor profile is missing for this doctor');
+    }
+    const doctorCategoryId = doctor.doctorProfile?.categoryId;
+    if (doctorCategoryId && categoryId && doctorCategoryId !== categoryId) {
       throw new BadRequestException(
         'Doctor does not belong to the selected category',
       );
+    }
+    if (!data.categoryId && doctorCategoryId) {
+      (data as any).categoryId = doctorCategoryId;
     }
 
     // Validate patient role
     const patient: User = await this.userService.findOne({
       where: { id: patientId },
-      relations: ['category'],
+      relations: ['patientProfile'],
     });
 
     if (!patient || patient.userTypeId !== USER_TYPE.PATIENT) {

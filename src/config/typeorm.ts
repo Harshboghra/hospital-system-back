@@ -19,9 +19,5 @@ export const typeOrmConfig = (): DataSourceOptions => {
     synchronize: false,
     migrationsTableName: 'migrations',
     schema: 'public',
-    ssl:
-      process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false }
-        : false,
   };
 };

@@ -18,5 +18,10 @@ export const typeOrmConfig = (): DataSourceOptions => {
     migrations: [join(__dirname, '..', '**', '/migrations/*.{ts,js}')],
     synchronize: false,
     migrationsTableName: 'migrations',
+    schema: 'public',
+    ssl:
+      process.env.NODE_ENV === 'production'
+        ? { rejectUnauthorized: false }
+        : false,
   };
 };

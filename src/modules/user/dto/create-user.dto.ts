@@ -10,7 +10,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { USER_TYPE } from 'src/modules/user-type/constant';
+import { USER_TYPE } from 'src/common/constant';
 import { BloodGroup } from '../entities/patient-profile.entity';
 
 export class DoctorProfileDto {

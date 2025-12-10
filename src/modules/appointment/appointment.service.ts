@@ -5,7 +5,7 @@ import { appointmentRepository } from './repository/user.repository';
 import { Between, FindOneOptions } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
-import { USER_TYPE } from '../user-type/constant';
+import { USER_TYPE } from '../../common/constant';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { APPOINTMENT_STATE } from './constant';
 

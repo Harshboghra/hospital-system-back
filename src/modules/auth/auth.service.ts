@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserService } from 'src/modules/user/user.service';
 import { User } from 'src/modules/user/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
-import { USER_TYPE } from '../user-type/constant';
+import { USER_TYPE } from '../../common/constant';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     const user: User = await this.userService.findOne({
       where: { email },
       select: ['id', 'password', 'email', 'userTypeId'],
-      relations: ['userType', 'doctorProfile', 'doctorProfile.category', 'patientProfile'],
+      relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
     });
 
     if (!user || !user.password) {

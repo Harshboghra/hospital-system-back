@@ -1,7 +1,7 @@
 import { Controller, Get, Req } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { USER_TYPE } from '../user-type/constant';
+import { USER_TYPE } from '../../common/constant';
 
 @Controller('dashboard')
 export class DashboardController {

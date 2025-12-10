@@ -7,7 +7,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { AbstractService } from 'src/common/abstract.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { USER_TYPE } from '../user-type/constant';
+import { USER_TYPE } from '../../common/constant';
 import { FindOneOptions } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CLOUDINARY } from '../cloudinary/cloudinary.provider';
@@ -58,12 +58,7 @@ export class UserService extends AbstractService {
 
       return manager.findOne(User, {
         where: { id: savedUser.id },
-        relations: [
-          'userType',
-          'doctorProfile',
-          'doctorProfile.category',
-          'patientProfile',
-        ],
+        relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
       });
     });
   }
@@ -200,12 +195,7 @@ export class UserService extends AbstractService {
 
       return repo.findOne({
         where: { id },
-        relations: [
-          'userType',
-          'doctorProfile',
-          'doctorProfile.category',
-          'patientProfile',
-        ],
+        relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
       });
     });
   }
@@ -223,12 +213,7 @@ export class UserService extends AbstractService {
 
   findAll() {
     return this.find({
-      relations: [
-        'userType',
-        'doctorProfile',
-        'doctorProfile.category',
-        'patientProfile',
-      ],
+      relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
     });
   }
 
@@ -239,13 +224,8 @@ export class UserService extends AbstractService {
 
   async findByUserTypeId(userTypeId: number) {
     return this.find({
-      where: { userType: { id: userTypeId } },
-      relations: [
-        'userType',
-        'doctorProfile',
-        'doctorProfile.category',
-        'patientProfile',
-      ],
+      where: { userTypeId },
+      relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
       order: { id: 'desc' },
     });
   }
@@ -253,10 +233,10 @@ export class UserService extends AbstractService {
   async findDoctorByCategoryId(categoryId: number) {
     return this.find({
       where: {
-        userType: { id: USER_TYPE.DOCTOR },
+        userTypeId: USER_TYPE.DOCTOR,
         doctorProfile: { categoryId },
       },
-      relations: ['userType', 'doctorProfile', 'doctorProfile.category'],
+      relations: ['doctorProfile', 'doctorProfile.category'],
       order: { id: 'desc' },
     });
   }

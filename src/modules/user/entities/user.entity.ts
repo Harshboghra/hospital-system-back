@@ -1,11 +1,8 @@
 import { Appointment } from 'src/modules/appointment/entities/appointment.entity';
-import { UserType } from 'src/modules/user-type/entities/user-type.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
-  JoinColumn,
   OneToMany,
   OneToOne,
 } from 'typeorm';
@@ -44,10 +41,6 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
-
-  @ManyToOne(() => UserType, (userType) => userType.user)
-  @JoinColumn([{ name: 'userTypeId', referencedColumnName: 'id' }])
-  userType: UserType;
 
   @OneToMany(() => Appointment, (appointment) => appointment.doctor)
   doctorAppointments: Appointment[];

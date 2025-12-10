@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Between } from 'typeorm';
 import { AppointmentService } from '../appointment/appointment.service';
 import { UserService } from '../user/user.service';
-import { USER_TYPE } from '../user-type/constant';
+import { USER_TYPE } from '../../common/constant';
 import { CategoryService } from '../category/category.service';
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { APPOINTMENT_STATE } from '../appointment/constant';

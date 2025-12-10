@@ -398,4 +398,69 @@ export class DashboardService {
       medicines,
     };
   }
+
+  // data Patient
+  /* 
+    ex 
+    {
+    Total visits :543
+Completed: 12
+Cancelled: 12
+labels: ["Jun", "Jul", "Aug", "Sep", "Oct"],
+data: [1, 3, 2, 4, 2],
+      }
+  */
+  async getPatientAppointmentStats(patientId: number) {
+    const totalVisits = await this.appointmentService.countByCondition({
+      where: { patientId },
+    });
+    const completed = await this.appointmentService.countByCondition({
+      where: { patientId, state: APPOINTMENT_STATE.COMPLETED },
+    });
+    const cancelled = await this.appointmentService.countByCondition({
+      where: { patientId, state: APPOINTMENT_STATE.CANCELED },
+    });
+    const today = new Date();
+    const labels: string[] = [];
+    const data: number[] = [];
+    for (let offset = 5; offset >= 0; offset--) {
+      const date = new Date(
+        today.getFullYear(),
+        today.getMonth() - offset,
+        1,
+      );
+      const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
+      labels.push(monthLabel);
+      const monthStart = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0,
+      );
+      const monthEnd = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+        23,
+        59,
+      );
+      const appointments = await this.appointmentService.count({
+        where: {
+          patientId,
+          time: Between(monthStart, monthEnd),
+        },
+      });
+      data.push(appointments);
+    }
+    return {
+      totalVisits,
+      completed,
+      cancelled,
+      labels,
+      data,
+    };
+  }
 }

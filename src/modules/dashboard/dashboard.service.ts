@@ -7,6 +7,7 @@ import { CategoryService } from '../category/category.service';
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { APPOINTMENT_STATE } from '../appointment/constant';
 import { MedicineService } from '../medicine/medicine.service';
+import { Medicine } from '../medicine/entities/medicine.entity';
 
 @Injectable()
 export class DashboardService {
@@ -369,6 +370,32 @@ export class DashboardService {
         ? `Dr. ${nextAppointment.doctor.name}`
         : 'Unknown',
       reason: nextAppointment.category?.name || 'N/A',
+    };
+  }
+
+  async getLastVisitAndMedicines(patientId: number) {
+    // 1) Get last completed appointment
+    const lastAppointment = await this.appointmentService.findOne({
+      where: {
+        patientId,
+        state: APPOINTMENT_STATE.COMPLETED,
+      },
+      order: { time: 'DESC' },
+      relations: ['doctor'],
+    });
+    if (!lastAppointment) {
+      return null;
+    }
+    // 2) Get medicines for that appointment
+    const medicines: Medicine[] = await this.medicineService.find({
+      where: { appointmentId: lastAppointment.id },
+      take: 2,
+    });
+    return {
+      id: lastAppointment.id,
+      date: lastAppointment.time,
+      doctorName: lastAppointment.doctor.name || '',
+      medicines,
     };
   }
 }

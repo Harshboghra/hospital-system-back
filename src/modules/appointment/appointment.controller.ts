@@ -32,4 +32,14 @@ export class AppointmentController {
   cancelAppointment(@Param('id') id: number) {
     return this.appointmentService.cancelAppointment(id);
   }
+
+  @Get('state/:state')
+  findAllByState(
+    @Req() req,
+    @Param('state') state: string,
+    @Param('limit') limit?: number,
+  ) {
+    const user = req.user;
+    return this.appointmentService.findAllByState(user.id, state, limit);
+  }
 }

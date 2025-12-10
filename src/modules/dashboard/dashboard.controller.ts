@@ -58,4 +58,11 @@ export class DashboardController {
     const patientId = req.user?.id;
     return this.dashboardService.getNextAppointmentForPatient(patientId);
   }
+
+  @Roles(USER_TYPE.PATIENT)
+  @Get('last-visit-and-medicines')
+  async getLastVisitAndMedicines(@Req() req) {
+    const patientId = req.user?.id;
+    return this.dashboardService.getLastVisitAndMedicines(patientId);
+  }
 }

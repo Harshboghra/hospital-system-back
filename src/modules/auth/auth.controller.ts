@@ -28,7 +28,7 @@ export class AuthController {
   @Public()
   @Post('set-password')
   async setPassword(@Body() body: SetPasswordDto) {
-    return this.authService.setPasswordFirstTime(body.id, body.password);
+    return this.authService.setPasswordFirstTime(body.userId, body.password);
   }
 
   // check if email exists and if password is set

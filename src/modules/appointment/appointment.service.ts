@@ -75,6 +75,14 @@ export class AppointmentService extends AbstractService {
     return this.countByCondition(options);
   }
 
+  async findAllByState(userId: Number, state: String, limit?: number) {
+    return this.find({
+      where: { state, patientId: userId },
+      relations: ['doctor', 'patient'],
+      take: limit || 4,
+    });
+  }
+
   private async validateAppointmentData(
     data: UpdateAppointmentDto | CreateAppointmentDto,
   ) {

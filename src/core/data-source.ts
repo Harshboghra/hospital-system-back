@@ -11,6 +11,5 @@ dataSource
     console.log('Data Source has been initialized successfully.');
   })
   .catch((err) => {
-    console.log('process.env.POSTGRES_PASSWORD', process.env.POSTGRES_HOST);
     console.error('Error during Data Source initialization:', err);
   });

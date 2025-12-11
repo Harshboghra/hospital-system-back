@@ -33,7 +33,7 @@ export class Hospital1764592587554 implements MigrationInterface {
         ALTER TABLE public."user"
         DROP COLUMN "categoryId";
     `);
-    
+
     await queryRunner.query(`
         DROP TABLE IF EXISTS "category";
     `);

@@ -65,4 +65,3 @@ export class AddProfiles1765365000000 implements MigrationInterface {
     `);
   }
 }
-

@@ -5,7 +5,7 @@ export class Hospital1765433738347 implements MigrationInterface {
     await queryRunner.query(`
         -- Default values Admin user
         INSERT INTO "user" (name, "email", "userTypeId", password, "phoneNumber")
-        VALUES ('Admin', 'admin@gmail.com', 1, '$2b$10$oPreyeahfFrcrO8WSnIB0u27SwIVXdwLw.hvwYcsXtNMlbuTOB5Va', 2365417899);
+        VALUES ('Admin', 'admin@gmail.com', 1, '$2b$10$ZANuwebyLEzaEx/tooJTG.zkiuQ4oOCRcwnJDM1Jk/s3eUxAxhF9u', 2365417899);
     `);
   }
 

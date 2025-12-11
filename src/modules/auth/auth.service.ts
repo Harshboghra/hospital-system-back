@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 import { UserService } from 'src/modules/user/user.service';
 import { User } from 'src/modules/user/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
-import { USER_TYPE } from '../../common/constant';
+import { USER_TYPE } from 'src/common/constant';
 
 @Injectable()
 export class AuthService {
@@ -66,12 +66,20 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(dto.password, salt);
 
-    const toCreate = {
-      ...dto,
+    // Prepare user creation data
+    const { doctorProfile, patientProfile, ...userData } = dto;
+
+    const toCreate: any = {
+      ...userData,
       password: hashed,
-      userTypeId: USER_TYPE.PATIENT,
-      patientProfile: {},
     };
+
+    // Add profile data based on user type
+    if (dto.userTypeId === USER_TYPE.DOCTOR) {
+      toCreate.doctorProfile = doctorProfile || {};
+    } else if (dto.userTypeId === USER_TYPE.PATIENT) {
+      toCreate.patientProfile = patientProfile || {};
+    }
 
     const user = (await this.userService.create(toCreate)) as User;
 

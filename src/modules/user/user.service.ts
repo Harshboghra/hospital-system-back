@@ -7,7 +7,6 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { AbstractService } from 'src/common/abstract.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { USER_TYPE } from '../../common/constant';
 import { FindOneOptions } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CLOUDINARY } from '../cloudinary/cloudinary.provider';
@@ -16,6 +15,7 @@ import { dataSource } from 'src/core/data-source';
 import { DoctorProfile } from './entities/doctor-profile.entity';
 import { PatientProfile } from './entities/patient-profile.entity';
 import { userRepository } from './repository/user.repository';
+import { USER_TYPE } from 'src/common/constant';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -58,7 +58,11 @@ export class UserService extends AbstractService {
 
       return manager.findOne(User, {
         where: { id: savedUser.id },
-        relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
+        relations: [
+          'doctorProfile',
+          'doctorProfile.category',
+          'patientProfile',
+        ],
       });
     });
   }
@@ -107,6 +111,16 @@ export class UserService extends AbstractService {
       }
 
       const { doctorProfile, patientProfile, ...userPayload } = dto;
+
+      // Check for email uniqueness if email is being updated
+      if (userPayload.email && userPayload.email !== existing.email) {
+        const emailExists = await repo.findOne({
+          where: { email: userPayload.email },
+        });
+        if (emailExists) {
+          throw new BadRequestException('Email already exists');
+        }
+      }
 
       const targetUserType: number =
         userPayload.userTypeId ?? existing.userTypeId;
@@ -184,7 +198,10 @@ export class UserService extends AbstractService {
         }
 
         // remove doctor profile when downgrading to patient
-        if (existing.doctorProfile && Number(targetUserType) !== USER_TYPE.DOCTOR) {
+        if (
+          existing.doctorProfile &&
+          Number(targetUserType) !== USER_TYPE.DOCTOR
+        ) {
           await manager.getRepository(DoctorProfile).delete({ userId: id });
         }
       } else {
@@ -195,7 +212,11 @@ export class UserService extends AbstractService {
 
       return repo.findOne({
         where: { id },
-        relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
+        relations: [
+          'doctorProfile',
+          'doctorProfile.category',
+          'patientProfile',
+        ],
       });
     });
   }
@@ -224,7 +245,7 @@ export class UserService extends AbstractService {
 
   async findByUserTypeId(userTypeId: number) {
     return this.find({
-      where: { userTypeId },
+      where: { userTypeId: userTypeId },
       relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
       order: { id: 'desc' },
     });

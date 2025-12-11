@@ -1,5 +1,12 @@
 import { Category } from 'src/modules/category/entities/category.entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('doctor_profile')
@@ -10,7 +17,12 @@ export class DoctorProfile {
   @Column({ type: 'integer', name: 'categoryId', nullable: true })
   categoryId?: number | null;
 
-  @Column({ name: 'registration_no', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'registration_no',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   registrationNo?: string | null;
 
   @Column({ name: 'years_experience', type: 'integer', nullable: true })
@@ -34,4 +46,3 @@ export class DoctorProfile {
   @JoinColumn([{ name: 'categoryId', referencedColumnName: 'id' }])
   category?: Category | null;
 }
-

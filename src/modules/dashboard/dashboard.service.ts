@@ -418,11 +418,7 @@ data: [1, 3, 2, 4, 2],
     const labels: string[] = [];
     const data: number[] = [];
     for (let offset = 5; offset >= 0; offset--) {
-      const date = new Date(
-        today.getFullYear(),
-        today.getMonth() - offset,
-        1,
-      );
+      const date = new Date(today.getFullYear(), today.getMonth() - offset, 1);
       const monthLabel = date.toLocaleDateString('en-US', { month: 'short' });
       labels.push(monthLabel);
       const monthStart = new Date(

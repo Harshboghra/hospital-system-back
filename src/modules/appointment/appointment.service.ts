@@ -36,17 +36,32 @@ export class AppointmentService extends AbstractService {
   findAll(user: User) {
     if (Number(user.userTypeId) === USER_TYPE.ADMIN) {
       return this.find({
-        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
+        relations: [
+          'doctor',
+          'doctor.doctorProfile',
+          'patient',
+          'patient.patientProfile',
+        ],
       });
     } else if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
       return this.find({
         where: { doctorId: user.id },
-        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
+        relations: [
+          'doctor',
+          'doctor.doctorProfile',
+          'patient',
+          'patient.patientProfile',
+        ],
       });
     } else if (Number(user.userTypeId) === USER_TYPE.PATIENT) {
       return this.find({
         where: { patientId: user.id },
-        relations: ['doctor', 'doctor.doctorProfile', 'patient', 'patient.patientProfile'],
+        relations: [
+          'doctor',
+          'doctor.doctorProfile',
+          'patient',
+          'patient.patientProfile',
+        ],
       });
     }
     return [];
@@ -104,7 +119,9 @@ export class AppointmentService extends AbstractService {
       throw new BadRequestException('Selected doctorId is not a doctor');
     }
     if (!doctor.doctorProfile) {
-      throw new BadRequestException('Doctor profile is missing for this doctor');
+      throw new BadRequestException(
+        'Doctor profile is missing for this doctor',
+      );
     }
     const doctorCategoryId = doctor.doctorProfile?.categoryId;
     if (doctorCategoryId && categoryId && doctorCategoryId !== categoryId) {

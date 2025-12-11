@@ -32,10 +32,22 @@ export class PatientProfile {
   @Column({ name: 'gender', type: 'varchar', length: 20, nullable: true })
   gender?: string | null;
 
-  @Column({ name: 'height_cm', type: 'numeric', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'height_cm',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   heightCm?: number | null;
 
-  @Column({ name: 'weight_kg', type: 'numeric', precision: 5, scale: 2, nullable: true })
+  @Column({
+    name: 'weight_kg',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+  })
   weightKg?: number | null;
 
   @Column({ name: 'allergies', type: 'text', nullable: true })
@@ -44,10 +56,20 @@ export class PatientProfile {
   @Column({ name: 'chronic_diseases', type: 'text', nullable: true })
   chronicDiseases?: string | null;
 
-  @Column({ name: 'emergency_contact_name', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'emergency_contact_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   emergencyContactName?: string | null;
 
-  @Column({ name: 'emergency_contact_phone', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'emergency_contact_phone',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   emergencyContactPhone?: string | null;
 
   @OneToOne(() => User, (user) => user.patientProfile, {
@@ -56,4 +78,3 @@ export class PatientProfile {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 }
-

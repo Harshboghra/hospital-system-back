@@ -33,38 +33,29 @@ export class AppointmentService extends AbstractService {
     return this.abstractUpdate(id, data);
   }
 
-  findAll(user: User) {
-    if (Number(user.userTypeId) === USER_TYPE.ADMIN) {
-      return this.find({
-        relations: [
-          'doctor',
-          'doctor.doctorProfile',
-          'patient',
-          'patient.patientProfile',
-        ],
-      });
-    } else if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
-      return this.find({
-        where: { doctorId: user.id },
-        relations: [
-          'doctor',
-          'doctor.doctorProfile',
-          'patient',
-          'patient.patientProfile',
-        ],
-      });
+  findAll(user: User, filters?: { search?: string }) {
+    const { search } = filters || {};
+    const queryBuilder = this.repository.createQueryBuilder('appointment')
+      .leftJoinAndSelect('appointment.doctor', 'doctor')
+      .leftJoinAndSelect('appointment.patient', 'patient')
+      .leftJoinAndSelect('doctor.doctorProfile', 'doctorProfile')
+      .leftJoinAndSelect('patient.patientProfile', 'patientProfile');
+
+    // Apply user-specific filters
+    if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
+      queryBuilder.andWhere('appointment.doctorId = :doctorId', { doctorId: user.id });
     } else if (Number(user.userTypeId) === USER_TYPE.PATIENT) {
-      return this.find({
-        where: { patientId: user.id },
-        relations: [
-          'doctor',
-          'doctor.doctorProfile',
-          'patient',
-          'patient.patientProfile',
-        ],
-      });
+      queryBuilder.andWhere('appointment.patientId = :patientId', { patientId: user.id });
     }
-    return [];
+
+    // Apply search filter (case-insensitive)
+    if (search) {
+      queryBuilder.andWhere('(LOWER(doctor.name) LIKE LOWER(:search) OR LOWER(patient.name) LIKE LOWER(:search))', { search: `%${search}%` });
+    }
+
+    queryBuilder.orderBy('appointment.createdAt', 'DESC');
+
+    return queryBuilder.getMany();
   }
 
   findById(id: number) {

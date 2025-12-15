@@ -37,6 +37,22 @@ export class UserService extends AbstractService {
         throw new BadRequestException('Doctor category is required');
       }
 
+      // Check for email uniqueness
+      const emailExists = await manager.findOne(User, {
+        where: { email: userPayload.email },
+      });
+      if (emailExists) {
+        throw new BadRequestException('Email already exists');
+      }
+
+      // Check for phone number uniqueness
+      const phoneExists = await manager.findOne(User, {
+        where: { phoneNumber: userPayload.phoneNumber },
+      });
+      if (phoneExists) {
+        throw new BadRequestException('Phone number already exists');
+      }
+
       const user = manager.create(User, userPayload);
       const savedUser = await manager.save(User, user);
 
@@ -74,6 +90,24 @@ export class UserService extends AbstractService {
     });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Check for email uniqueness if email is being updated
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.findOne({ where: { email: dto.email } });
+      if (emailExists) {
+        throw new BadRequestException('Email already exists');
+      }
+    }
+
+    // Check for phone number uniqueness if phone number is being updated
+    if (dto.phoneNumber && dto.phoneNumber !== user.phoneNumber) {
+      const phoneExists = await this.findOne({
+        where: { phoneNumber: dto.phoneNumber },
+      });
+      if (phoneExists) {
+        throw new BadRequestException('Phone number already exists');
+      }
     }
 
     if (
@@ -243,12 +277,45 @@ export class UserService extends AbstractService {
     return true;
   }
 
-  async findByUserTypeId(userTypeId: number) {
-    return this.find({
-      where: { userTypeId: userTypeId },
-      relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
-      order: { id: 'desc' },
-    });
+  async findByUserTypeId(
+    userTypeId: number,
+    filters?: { page?: number; limit?: number; search?: string },
+  ) {
+    const { page = 1, limit = 10, search } = filters || {};
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.repository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.doctorProfile', 'doctorProfile')
+      .leftJoinAndSelect('user.patientProfile', 'patientProfile')
+      .leftJoinAndSelect('doctorProfile.category', 'category')
+      .where('user.userTypeId = :userTypeId', { userTypeId })
+      .orderBy('user.createdAt', 'DESC');
+
+    // Apply search filter (case-insensitive)
+    if (search) {
+      queryBuilder.andWhere(
+        '(LOWER(user.name) LIKE LOWER(:search) OR LOWER(user.email) LIKE LOWER(:search)) OR LOWER(user.phoneNumber) LIKE LOWER(:search) OR LOWER(category.name) LIKE LOWER(:search)',
+        { search: `%${search}%` },
+      );
+    } else {
+      // Apply pagination
+      queryBuilder.skip(skip).take(limit);
+    }
+
+    // Get total count for pagination
+    const totalQuery = queryBuilder.clone();
+    const total = await totalQuery.getCount();
+
+    const data = await queryBuilder.getMany();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findDoctorByCategoryId(categoryId: number) {

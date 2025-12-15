@@ -33,9 +33,15 @@ export class AppointmentService extends AbstractService {
     return this.abstractUpdate(id, data);
   }
 
-  findAll(user: User, filters?: { search?: string }) {
-    const { search } = filters || {};
-    const queryBuilder = this.repository.createQueryBuilder('appointment')
+  async findAll(
+    user: User,
+    filters?: { search?: string; page?: number; limit?: number; status?: string },
+  ) {
+    const { search, page = 1, limit = 10, status } = filters || {};
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.repository
+      .createQueryBuilder('appointment')
       .leftJoinAndSelect('appointment.doctor', 'doctor')
       .leftJoinAndSelect('appointment.patient', 'patient')
       .leftJoinAndSelect('doctor.doctorProfile', 'doctorProfile')
@@ -43,19 +49,56 @@ export class AppointmentService extends AbstractService {
 
     // Apply user-specific filters
     if (Number(user.userTypeId) === USER_TYPE.DOCTOR) {
-      queryBuilder.andWhere('appointment.doctorId = :doctorId', { doctorId: user.id });
+      queryBuilder.andWhere('appointment.doctorId = :doctorId', {
+        doctorId: user.id,
+      });
     } else if (Number(user.userTypeId) === USER_TYPE.PATIENT) {
-      queryBuilder.andWhere('appointment.patientId = :patientId', { patientId: user.id });
+      queryBuilder.andWhere('appointment.patientId = :patientId', {
+        patientId: user.id,
+      });
+    }
+
+    // Apply status filter
+    if (status) {
+      if (status === 'today') {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        queryBuilder.andWhere('appointment.time BETWEEN :startDate AND :endDate', {
+          startDate: startOfDay,
+          endDate: endOfDay
+        });
+      } else {
+        queryBuilder.andWhere('appointment.state = :status', { status });
+      }
     }
 
     // Apply search filter (case-insensitive)
     if (search) {
-      queryBuilder.andWhere('(LOWER(doctor.name) LIKE LOWER(:search) OR LOWER(patient.name) LIKE LOWER(:search))', { search: `%${search}%` });
+      queryBuilder.andWhere(
+        '(LOWER(doctor.name) LIKE LOWER(:search) OR LOWER(patient.name) LIKE LOWER(:search))',
+        { search: `%${search}%` },
+      );
     }
 
     queryBuilder.orderBy('appointment.createdAt', 'DESC');
 
-    return queryBuilder.getMany();
+    // Get total count for pagination
+    const totalQuery = queryBuilder.clone();
+    const total = await totalQuery.getCount();
+
+    // Apply pagination
+    queryBuilder.skip(skip).take(limit);
+
+    const data = await queryBuilder.getMany();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   findById(id: number) {

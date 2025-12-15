@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Patch,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -41,8 +42,13 @@ export class UserController {
   }
 
   @Get('byUserType/:userTypeId')
-  findByUserTypeId(@Param('userTypeId') userTypeId: number) {
-    return this.userService.findByUserTypeId(userTypeId);
+  findByUserTypeId(@Param('userTypeId') userTypeId: number, @Req() req) {
+    const { page = 1, limit = 10, search } = req.query;
+    return this.userService.findByUserTypeId(userTypeId, {
+      page: Number(page),
+      limit: Number(limit),
+      search,
+    });
   }
 
   @Get('doctorsByCategory/:categoryId')

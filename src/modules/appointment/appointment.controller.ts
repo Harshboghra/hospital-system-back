@@ -20,8 +20,13 @@ export class AppointmentController {
   @Get()
   findAll(@Req() req) {
     const user = req.user;
-    const { search } = req.query;
-    return this.appointmentService.findAll(user, { search });
+    const { search, page = 1, limit = 10, status } = req.query;
+    return this.appointmentService.findAll(user, {
+      search,
+      page: Number(page),
+      limit: Number(limit),
+      status: status as string
+    });
   }
 
   @Get(':id')

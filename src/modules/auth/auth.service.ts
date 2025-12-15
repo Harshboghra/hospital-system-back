@@ -26,13 +26,16 @@ export class AuthService {
       relations: ['doctorProfile', 'doctorProfile.category', 'patientProfile'],
     });
 
-    if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid email or password');
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    if (!user.password) {
+      throw new BadRequestException('Password not set. Please set password first time.');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid password');
     }
 
     const payload = {

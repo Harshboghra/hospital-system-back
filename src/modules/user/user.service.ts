@@ -37,6 +37,22 @@ export class UserService extends AbstractService {
         throw new BadRequestException('Doctor category is required');
       }
 
+      // Check for email uniqueness
+      const emailExists = await manager.findOne(User, {
+        where: { email: userPayload.email },
+      });
+      if (emailExists) {
+        throw new BadRequestException('Email already exists');
+      }
+      
+      // Check for phone number uniqueness
+      const phoneExists = await manager.findOne(User, {
+        where: { phoneNumber: userPayload.phoneNumber },
+      });
+      if (phoneExists) {
+        throw new BadRequestException('Phone number already exists');
+      }
+
       const user = manager.create(User, userPayload);
       const savedUser = await manager.save(User, user);
 
@@ -74,6 +90,24 @@ export class UserService extends AbstractService {
     });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Check for email uniqueness if email is being updated
+    if (dto.email && dto.email !== user.email) {
+      const emailExists = await this.findOne({ where: { email: dto.email } });
+      if (emailExists) {
+        throw new BadRequestException('Email already exists');
+      }
+    }
+
+    // Check for phone number uniqueness if phone number is being updated
+    if (dto.phoneNumber && dto.phoneNumber !== user.phoneNumber) {
+      const phoneExists = await this.findOne({
+        where: { phoneNumber: dto.phoneNumber },
+      });
+      if (phoneExists) {
+        throw new BadRequestException('Phone number already exists');
+      }
     }
 
     if (
